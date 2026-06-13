@@ -43,7 +43,11 @@ const TransactionForm = ({ onSaveTransaction, initialData = null, onCancel = nul
       setDescription(initialData.description);
       setAmount(initialData.amount.toString());
       setCurrency(initialData.currency);
-      setDate(initialData.date);
+      
+      // FIX: Recortamos la fecha de MongoDB para que el input HTML no arroje error en consola
+      const formattedDate = initialData.date ? initialData.date.split('T')[0] : new Date().toISOString().split('T')[0];
+      setDate(formattedDate);
+      
       setCategory(initialData.category);
       setSubcategory(initialData.subcategory || '');
     }

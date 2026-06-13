@@ -5,13 +5,12 @@ import TransactionForm from './components/TransactionForm/TransactionForm.jsx';
 import TransactionHistory from './components/TransactionHistory/TransactionHistory.jsx';
 import Dashboard from './components/Dashboard/Dashboard.jsx';
 
-// Tomamos la URL de la variable de entorno, con un fallback al localhost para desarrollo
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api/transactions';
+// Fijamos la URL de Render directamente para evitar problemas de entorno en Vercel
+const API_URL = 'https://batista-backend.onrender.com/api/transactions';
 
 const App = () => {
   const [transactions, setTransactions] = useState([]);
 
-  // 1. LEER (GET) - Cargar transacciones desde MongoDB al iniciar
   useEffect(() => {
     const fetchTransactions = async () => {
       try {
@@ -19,7 +18,6 @@ const App = () => {
         if (!response.ok) throw new Error('Error de red');
         const data = await response.json();
         
-        // Adaptamos el _id de MongoDB al formato id que usan nuestros componentes
         const formattedData = data.map(item => ({
           ...item,
           id: item._id
@@ -33,7 +31,6 @@ const App = () => {
     fetchTransactions();
   }, []);
 
-  // 2. CREAR (POST)
   const handleAddTransaction = async (newTransaction) => {
     try {
       const response = await fetch(API_URL, {
@@ -43,14 +40,13 @@ const App = () => {
       });
       const savedData = await response.json();
       
-      savedData.id = savedData._id; // Adaptamos el ID
+      savedData.id = savedData._id;
       setTransactions((prev) => [savedData, ...prev]);
     } catch (error) {
       console.error("Error al guardar en base de datos:", error);
     }
   };
 
-  // 3. ELIMINAR (DELETE)
   const handleDeleteTransaction = async (id) => {
     if(window.confirm('¿Estás seguro de que deseas eliminar esta transacción?')) {
       try {
@@ -64,7 +60,6 @@ const App = () => {
     }
   };
 
-  // 4. ACTUALIZAR (PUT)
   const handleUpdateTransaction = async (updatedTransaction) => {
     try {
       const response = await fetch(`${API_URL}/${updatedTransaction.id}`, {
@@ -74,7 +69,7 @@ const App = () => {
       });
       const savedData = await response.json();
       
-      savedData.id = savedData._id; // Adaptamos el ID
+      savedData.id = savedData._id;
       setTransactions((prev) => 
         prev.map(t => t.id === savedData.id ? savedData : t)
       );

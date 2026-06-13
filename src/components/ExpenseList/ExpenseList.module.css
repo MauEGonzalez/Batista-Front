@@ -1,0 +1,67 @@
+.listContainer {
+  background-color: #ffffff;
+  border-radius: 8px;
+  padding: 24px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  width: 100%;
+}
+
+.title {
+  font-size: 1.25rem;
+  color: #2c3e50;
+  margin-bottom: 16px;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+.emptyState {
+  background-color: #ffffff;
+  border-radius: 8px;
+  padding: 32px;
+  text-align: center;
+  color: #64748b;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+.tableWrapper {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+.table th,
+.table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.table th {
+  background-color: #f8fafc;
+  color: #475569;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.table td {
+  color: #334155;
+  font-size: 0.95rem;
+}
+
+.categoryBadge {
+  background-color: #e0f2fe;
+  color: #0369a1;
+  padding: 4px 8px;
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.amount {
+  font-weight: 600;
+  color: #0f172a;
+}

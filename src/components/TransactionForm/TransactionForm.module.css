@@ -1,0 +1,252 @@
+.formContainer {
+  background-color: #ffffff;
+  border-radius: 8px;
+  padding: 24px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.title {
+  font-size: 1.5rem;
+  color: #2c3e50;
+  margin-bottom: 20px;
+  text-align: center;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+.typeSelector {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.typeBtn {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #cbd5e1;
+  background-color: #f8fafc;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.2s;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+.activeIngreso {
+  background-color: #d1fae5;
+  color: #059669;
+  border-color: #059669;
+}
+
+.activeEgreso {
+  background-color: #fee2e2;
+  color: #dc2626;
+  border-color: #dc2626;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #34495e;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+.input,
+.select {
+  padding: 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+.input:focus,
+.select:focus {
+  outline: none;
+  border-color: #10b981;
+}
+
+/* Nuevos estilos para Monto y Moneda */
+.amountWrapper {
+  display: flex;
+  gap: 10px;
+}
+
+.currencySelect {
+  padding: 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-family: system-ui, -apple-system, sans-serif;
+  background-color: #f8fafc;
+  cursor: pointer;
+  width: 110px;
+}
+
+.currencySelect:focus {
+  outline: none;
+  border-color: #10b981;
+}
+
+.amountInput {
+  flex: 1;
+}
+
+/* Nuevos estilos para la creación de categorías */
+.addNewOption {
+  font-weight: bold;
+  color: #059669;
+}
+
+.newCategoryGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 12px;
+  background-color: #f8fafc;
+  border: 1px dashed #94a3b8;
+  border-radius: 6px;
+}
+
+.newCategoryActions {
+  display: flex;
+  gap: 8px;
+}
+
+.addCatBtn,
+.cancelCatBtn {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  flex: 1;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+.addCatBtn {
+  background-color: #10b981;
+  color: white;
+}
+
+.addCatBtn:hover {
+  background-color: #059669;
+}
+
+.cancelCatBtn {
+  background-color: #e2e8f0;
+  color: #475569;
+}
+
+.cancelCatBtn:hover {
+  background-color: #cbd5e1;
+}
+
+/* Estilos de los botones principales */
+.submitButton {
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 12px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 10px;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+.submitButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btnIngreso {
+  background-color: #10b981;
+}
+.btnIngreso:hover:not(:disabled) {
+  background-color: #059669;
+}
+
+.btnEgreso {
+  background-color: #ef4444;
+}
+.btnEgreso:hover:not(:disabled) {
+  background-color: #dc2626;
+}
+
+.actionButtonsContainer {
+  display: flex;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.submitButton {
+  flex: 2;
+  /* El resto de tus estilos .submitButton se mantienen... */
+}
+
+.cancelButton {
+  flex: 1;
+  background-color: #e2e8f0;
+  color: #475569;
+  border: none;
+  border-radius: 6px;
+  padding: 12px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  font-family: system-ui, -apple-system, sans-serif;
+  transition: background-color 0.2s;
+}
+
+.cancelButton:hover {
+  background-color: #cbd5e1;
+}
+.fundSelector { margin-bottom: 20px; display: flex; flex-direction: column; gap: 8px; }
+
+/* Toast de Éxito */
+.successToast {
+  background-color: #d1fae5;
+  color: #065f46;
+  padding: 12px 16px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  border: 1px solid #10b981;
+  text-align: center;
+  font-weight: 600;
+  font-family: system-ui, -apple-system, sans-serif;
+  animation: fadeInDown 0.3s ease-out forwards;
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fundSelector {
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}

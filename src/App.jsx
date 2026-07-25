@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Sidebar from './components/Sidebar/Sidebar.jsx';
 import TransactionForm from './components/TransactionForm/TransactionForm.jsx';
 import TransactionHistory from './components/TransactionHistory/TransactionHistory.jsx';
 import Dashboard from './components/Dashboard/Dashboard.jsx';
 
-// Fijamos la URL de Render directamente para evitar problemas de entorno en Vercel
 const API_URL = 'https://batista-backend.onrender.com/api/transactions';
 
 const App = () => {
@@ -85,13 +84,17 @@ const App = () => {
         
         <main style={{ flex: 1, padding: '2rem', overflowY: 'auto' }}>
           <Routes>
+            {/* Redirección por defecto al entrar a la web */}
+            <Route path="/" element={<Navigate to="/sucesores" replace />} />
+
+            {/* Rutas dinámicas basadas en la entidad */}
             <Route 
-              path="/" 
+              path="/:entity" 
               element={<Dashboard transactions={transactions} />} 
             />
             
             <Route 
-              path="/nueva-transaccion" 
+              path="/:entity/nueva-transaccion" 
               element={
                 <div>
                   <h1 style={{ color: '#065f46', marginBottom: '2rem', fontFamily: 'system-ui, sans-serif' }}>Registro Operativo</h1>
@@ -104,7 +107,7 @@ const App = () => {
             />
 
             <Route 
-              path="/historial" 
+              path="/:entity/historial" 
               element={
                 <div>
                   <h1 style={{ color: '#065f46', marginBottom: '2rem', fontFamily: 'system-ui, sans-serif' }}>Historial y Modificaciones</h1>

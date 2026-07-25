@@ -1,11 +1,11 @@
 import React, { useState, useMemo } from 'react';
+import { useParams } from 'react-router-dom';
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import styles from './Dashboard.module.css';
 
 const COLORS = ['#059669', '#3b82f6', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6', '#f43f5e', '#64748b'];
 
-// Sub-componente que renderiza una sección completa (Fondo)
-const DashboardSection = ({ title, transactions, isSmall }) => {
+const DashboardSection = ({ title, transactions }) => {
   const [activeType, setActiveType] = useState('Egreso'); 
   const [activeCategory, setActiveCategory] = useState(null); 
 
@@ -50,7 +50,7 @@ const DashboardSection = ({ title, transactions, isSmall }) => {
   chartData.sort((a, b) => b.value - a.value);
 
   return (
-    <div className={`${styles.sectionContainer} ${isSmall ? styles.smallSection : ''}`}>
+    <div className={styles.sectionContainer}>
       <h2 className={styles.sectionTitle}>{title}</h2>
 
       <div className={styles.cardsGrid}>
@@ -108,14 +108,14 @@ const DashboardSection = ({ title, transactions, isSmall }) => {
         
         {chartData.length > 0 ? (
           <div className={styles.chartWrapper}>
-            <ResponsiveContainer width="100%" height={isSmall ? 250 : 350}>
+            <ResponsiveContainer width="100%" height={350}>
               <PieChart>
                 <Pie
                   data={chartData}
                   cx="50%"
                   cy="50%"
-                  innerRadius={isSmall ? 40 : 60}
-                  outerRadius={isSmall ? 70 : 100}
+                  innerRadius={80}
+                  outerRadius={120}
                   paddingAngle={2}
                   dataKey="value"
                   onClick={!activeCategory ? (data) => setActiveCategory(data.name) : undefined}
@@ -139,20 +139,41 @@ const DashboardSection = ({ title, transactions, isSmall }) => {
   );
 };
 
-// Componente Principal
 const Dashboard = ({ transactions }) => {
-  // Setup de fechas iniciales
+  const { entity } = useParams();
+  
+  // Diccionario para mapear la URL al nombre real del fondo en tu base de datos
+  const fundMap = {
+    sucesores: 'Almiscar',
+    gloria: 'Gloria',
+    ico: 'Ico'
+  };
+  
+  const titleMap = {
+    sucesores: 'Sucesores de Almiscar Batista',
+    gloria: 'Capital: Gloria Rodriguez',
+    ico: 'Capital: Ico Batista'
+  };
+
+  const activeFund = fundMap[entity] || 'Almiscar';
+  const displayTitle = titleMap[entity] || 'Sucesores de Almiscar Batista';
+
   const today = new Date();
   const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
   const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).toISOString().split('T')[0];
 
-  const [filterMode, setFilterMode] = useState('currentMonth'); // 'currentMonth', 'historical', 'custom'
+  const [filterMode, setFilterMode] = useState('currentMonth');
   const [startDate, setStartDate] = useState(firstDayOfMonth);
   const [endDate, setEndDate] = useState(lastDayOfMonth);
 
-  // Filtramos las transacciones antes de separarlas por fondo
+  // Primero filtramos las transacciones por la empresa actual, luego aplicamos los filtros de fecha
   const filteredTransactions = useMemo(() => {
     return transactions.filter(t => {
+      // Filtro de empresa (los registros viejos sin fondo los toma Almiscar por defecto)
+      const belongsToActiveFund = (t.fund === activeFund) || (!t.fund && activeFund === 'Almiscar');
+      if (!belongsToActiveFund) return false;
+
+      // Filtro de tiempo
       if (filterMode === 'historical') return true;
       
       const txDate = t.date.split('T')[0]; 
@@ -169,28 +190,13 @@ const Dashboard = ({ transactions }) => {
       
       return true;
     });
-  }, [transactions, filterMode, startDate, endDate, firstDayOfMonth, lastDayOfMonth]);
-
-  const almiscarTx = filteredTransactions.filter(t => !t.fund || t.fund === 'Almiscar');
-  const gloriaTx = filteredTransactions.filter(t => t.fund === 'Gloria');
-
-  if (transactions.length === 0) {
-    return (
-      <div className={styles.dashboardContainer}>
-        <h1 className={styles.pageTitle}>Dashboard Operativo</h1>
-        <div className={styles.emptyState}>
-          <p>Aún no hay datos históricos. Registra tus primeras transacciones.</p>
-        </div>
-      </div>
-    );
-  }
+  }, [transactions, filterMode, startDate, endDate, firstDayOfMonth, lastDayOfMonth, activeFund]);
 
   return (
     <div className={styles.dashboardContainer}>
       <div className={styles.headerRow}>
         <h1 className={styles.pageTitle}>Dashboard Operativo</h1>
         
-        {/* Barra de Filtros de Tiempo */}
         <div className={styles.filterBar}>
           <div className={styles.filterButtons}>
             <button 
@@ -228,22 +234,12 @@ const Dashboard = ({ transactions }) => {
         </div>
       </div>
       
-      <div className={styles.dashboardLayout}>
-        <div className={styles.mainColumn}>
-          <DashboardSection 
-            title="Sucesores de Almiscar Batista" 
-            transactions={almiscarTx} 
-            isSmall={false} 
-          />
-        </div>
-
-        <div className={styles.sideColumn}>
-          <DashboardSection 
-            title="Capital: Gloria Rodriguez" 
-            transactions={gloriaTx} 
-            isSmall={true} 
-          />
-        </div>
+      {/* Un único contenedor central al 100% de ancho */}
+      <div style={{ width: '100%', maxWidth: '1200px', margin: '0 auto' }}>
+        <DashboardSection 
+          title={displayTitle} 
+          transactions={filteredTransactions} 
+        />
       </div>
     </div>
   );

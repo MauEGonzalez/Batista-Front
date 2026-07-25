@@ -1,34 +1,44 @@
 import React, { useState } from 'react';
+import { useParams } from 'react-router-dom';
 import TransactionForm from '../TransactionForm/TransactionForm.jsx';
 import styles from './TransactionHistory.module.css';
 
 const TransactionHistory = ({ transactions, onDelete, onUpdate }) => {
+  const { entity } = useParams();
+  
+  const fundMap = { sucesores: 'Almiscar', gloria: 'Gloria', ico: 'Ico' };
+  const activeFund = fundMap[entity] || 'Almiscar';
+
   const [filterType, setFilterType] = useState('Todos');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   
-  // Estado para controlar la transacción que se está editando
   const [editingTransaction, setEditingTransaction] = useState(null);
 
+  // Doble filtro: Primero por empresa activa, luego por los filtros del usuario
   const filteredTransactions = transactions.filter((transaction) => {
+    // 1. Filtro de Empresa
+    const belongsToActiveFund = (transaction.fund === activeFund) || (!transaction.fund && activeFund === 'Almiscar');
+    if (!belongsToActiveFund) return false;
+
+    // 2. Filtros de Usuario
     const matchesType = filterType === 'Todos' || transaction.type === filterType;
     const matchesStartDate = startDate ? transaction.date >= startDate : true;
     const matchesEndDate = endDate ? transaction.date <= endDate : true;
+    
     return matchesType && matchesStartDate && matchesEndDate;
   });
 
   const sortedTransactions = filteredTransactions.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-  // Función que se dispara cuando el formulario de edición se envía
   const handleSaveEdit = (updatedTransaction) => {
     onUpdate(updatedTransaction);
-    setEditingTransaction(null); // Cerramos el modal
+    setEditingTransaction(null);
   };
 
   return (
     <div className={styles.historyContainer}>
       
-      {/* Modal de Edición (se muestra si hay una transacción seleccionada) */}
       {editingTransaction && (
         <div className={styles.modalOverlay}>
           <div className={styles.modalContent}>
@@ -36,6 +46,7 @@ const TransactionHistory = ({ transactions, onDelete, onUpdate }) => {
               initialData={editingTransaction}
               onSaveTransaction={handleSaveEdit}
               onCancel={() => setEditingTransaction(null)}
+              transactions={transactions}
             />
           </div>
         </div>

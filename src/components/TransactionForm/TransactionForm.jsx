@@ -1,8 +1,15 @@
 import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import styles from './TransactionForm.module.css';
 
 const TransactionForm = ({ onSaveTransaction, initialData = null, onCancel = null, transactions = [] }) => {
-  const [fund, setFund] = useState('Almiscar');
+  // Leemos la URL para saber en qué empresa estamos operando
+  const { entity } = useParams();
+  const fundMap = { sucesores: 'Almiscar', gloria: 'Gloria', ico: 'Ico' };
+  
+  // El fondo activo se determina por la URL, se elimina la opción de elegir a mano para evitar cruce de datos
+  const activeFund = fundMap[entity] || 'Almiscar';
+
   const [type, setType] = useState('Egreso');
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
@@ -10,14 +17,11 @@ const TransactionForm = ({ onSaveTransaction, initialData = null, onCancel = nul
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [subcategory, setSubcategory] = useState('');
   
-  // Estado para el mensaje de éxito
   const [successMessage, setSuccessMessage] = useState('');
 
-  // Categorías base
   const defaultEgreso = ['Alimentación', 'Veterinaria', 'Maquinaria', 'Infraestructura', 'Sueldos', 'Otros'];
   const defaultIngreso = ['Venta de Ganado', 'Venta de Cosecha', 'Subsidios', 'Otros Ingresos'];
 
-  // Estados dinámicos para las categorías
   const [egresoCategorias, setEgresoCategorias] = useState(defaultEgreso);
   const [ingresoCategorias, setIngresoCategorias] = useState(defaultIngreso);
 
@@ -25,26 +29,24 @@ const TransactionForm = ({ onSaveTransaction, initialData = null, onCancel = nul
   const [isAddingCategory, setIsAddingCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
 
-  // Efecto para aprender categorías del historial (transactions)
   useEffect(() => {
-    const historicalEgreso = transactions.filter(t => t.type === 'Egreso').map(t => t.category);
-    const historicalIngreso = transactions.filter(t => t.type === 'Ingreso').map(t => t.category);
+    // Solo aprendemos las categorías históricas de la empresa actual
+    const entityTransactions = transactions.filter(t => (t.fund === activeFund) || (!t.fund && activeFund === 'Almiscar'));
     
-    // Unimos las bases con las históricas y eliminamos duplicados usando Set
+    const historicalEgreso = entityTransactions.filter(t => t.type === 'Egreso').map(t => t.category);
+    const historicalIngreso = entityTransactions.filter(t => t.type === 'Ingreso').map(t => t.category);
+    
     setEgresoCategorias([...new Set([...defaultEgreso, ...historicalEgreso])]);
     setIngresoCategorias([...new Set([...defaultIngreso, ...historicalIngreso])]);
-  }, [transactions]);
+  }, [transactions, activeFund]);
 
-  // Poblamos datos si estamos editando
   useEffect(() => {
     if (initialData) {
-      setFund(initialData.fund || 'Almiscar');
       setType(initialData.type);
       setDescription(initialData.description);
       setAmount(initialData.amount.toString());
       setCurrency(initialData.currency);
       
-      // FIX: Recortamos la fecha de MongoDB para que el input HTML no arroje error en consola
       const formattedDate = initialData.date ? initialData.date.split('T')[0] : new Date().toISOString().split('T')[0];
       setDate(formattedDate);
       
@@ -53,10 +55,9 @@ const TransactionForm = ({ onSaveTransaction, initialData = null, onCancel = nul
     }
   }, [initialData]);
 
-  // Generar lista de subcategorías históricas basadas en la categoría seleccionada
   const availableSubcategories = [...new Set(
     transactions
-      .filter(t => t.category === category && t.subcategory && t.subcategory !== 'General')
+      .filter(t => t.category === category && t.subcategory && t.subcategory !== 'General' && ((t.fund === activeFund) || (!t.fund && activeFund === 'Almiscar')))
       .map(t => t.subcategory)
   )];
 
@@ -74,7 +75,7 @@ const TransactionForm = ({ onSaveTransaction, initialData = null, onCancel = nul
     } else {
       setCategory(e.target.value);
       setIsAddingCategory(false);
-      setSubcategory(''); // Limpiamos subcategoría al cambiar de categoría principal
+      setSubcategory('');
     }
   };
 
@@ -104,7 +105,7 @@ const TransactionForm = ({ onSaveTransaction, initialData = null, onCancel = nul
 
     const transaction = {
       id: initialData ? initialData.id : crypto.randomUUID(),
-      fund,
+      fund: activeFund, // Inyección automática del fondo
       type,
       description,
       amount: parseFloat(amount),
@@ -117,11 +118,9 @@ const TransactionForm = ({ onSaveTransaction, initialData = null, onCancel = nul
     onSaveTransaction(transaction);
     
     if (!initialData) {
-      // Mostrar cartel de éxito
       setSuccessMessage(`¡${type} guardado con éxito!`);
       setTimeout(() => setSuccessMessage(''), 3000);
 
-      // Limpiar campos para la siguiente carga rápida
       setDescription('');
       setAmount('');
       setSubcategory('');
@@ -134,20 +133,13 @@ const TransactionForm = ({ onSaveTransaction, initialData = null, onCancel = nul
     <div className={styles.formContainer}>
       <h2 className={styles.title}>{initialData ? 'Editar Transacción' : 'Registrar Transacción'}</h2>
       
-      {/* Mensaje de éxito */}
       {successMessage && (
         <div className={styles.successToast}>
           {successMessage}
         </div>
       )}
 
-      <div className={styles.fundSelector}>
-        <label className={styles.label}>Fondo Destino:</label>
-        <select value={fund} onChange={(e) => setFund(e.target.value)} className={styles.select}>
-          <option value="Almiscar">Sucesores de Almiscar Batista</option>
-          <option value="Gloria">Capital: Gloria Rodriguez</option>
-        </select>
-      </div>
+      {/* Se eliminó intencionalmente el div selector de Fondo Destino */}
 
       <div className={styles.typeSelector}>
         <button 
@@ -208,7 +200,6 @@ const TransactionForm = ({ onSaveTransaction, initialData = null, onCancel = nul
 
         <div className={styles.formGroup}>
           <label htmlFor="subcategory" className={styles.label}>Subcategoría (Opcional)</label>
-          {/* El atributo list="subcategories" conecta este input con el <datalist> de abajo */}
           <input
             type="text"
             id="subcategory"
@@ -218,7 +209,6 @@ const TransactionForm = ({ onSaveTransaction, initialData = null, onCancel = nul
             className={styles.input}
             placeholder="Ej. Vacunas, Fardos, etc. (O elige de la lista)"
           />
-          {/* Datalist provee autocompletado nativo sin librerías extra */}
           <datalist id="subcategories">
             {availableSubcategories.map(sub => (
               <option key={sub} value={sub} />

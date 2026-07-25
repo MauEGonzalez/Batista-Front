@@ -3,11 +3,9 @@ import { useParams } from 'react-router-dom';
 import styles from './TransactionForm.module.css';
 
 const TransactionForm = ({ onSaveTransaction, initialData = null, onCancel = null, transactions = [] }) => {
-  // Leemos la URL para saber en qué empresa estamos operando
   const { entity } = useParams();
   const fundMap = { sucesores: 'Almiscar', gloria: 'Gloria', ico: 'Ico' };
   
-  // El fondo activo se determina por la URL, se elimina la opción de elegir a mano para evitar cruce de datos
   const activeFund = fundMap[entity] || 'Almiscar';
 
   const [type, setType] = useState('Egreso');
@@ -30,7 +28,6 @@ const TransactionForm = ({ onSaveTransaction, initialData = null, onCancel = nul
   const [newCategoryName, setNewCategoryName] = useState('');
 
   useEffect(() => {
-    // Solo aprendemos las categorías históricas de la empresa actual
     const entityTransactions = transactions.filter(t => (t.fund === activeFund) || (!t.fund && activeFund === 'Almiscar'));
     
     const historicalEgreso = entityTransactions.filter(t => t.type === 'Egreso').map(t => t.category);
@@ -55,10 +52,18 @@ const TransactionForm = ({ onSaveTransaction, initialData = null, onCancel = nul
     }
   }, [initialData]);
 
+  // Generamos la lista de subcategorías históricas
   const availableSubcategories = [...new Set(
     transactions
       .filter(t => t.category === category && t.subcategory && t.subcategory !== 'General' && ((t.fund === activeFund) || (!t.fund && activeFund === 'Almiscar')))
       .map(t => t.subcategory)
+  )];
+
+  // Generamos la lista de descripciones históricas únicas para predecir
+  const availableDescriptions = [...new Set(
+    transactions
+      .filter(t => t.type === type && ((t.fund === activeFund) || (!t.fund && activeFund === 'Almiscar')))
+      .map(t => t.description)
   )];
 
   const handleTypeChange = (newType) => {
@@ -67,6 +72,27 @@ const TransactionForm = ({ onSaveTransaction, initialData = null, onCancel = nul
     setIsAddingCategory(false);
     setNewCategoryName('');
     setSubcategory('');
+    setDescription('');
+  };
+
+  // Función inteligente que autocompleta al reconocer una descripción
+  const handleDescriptionChange = (e) => {
+    const val = e.target.value;
+    setDescription(val);
+
+    // Buscamos si esta descripción ya existe en el historial de esta empresa
+    const pastTransaction = transactions.find(t => 
+      t.description === val && 
+      t.type === type && 
+      ((t.fund === activeFund) || (!t.fund && activeFund === 'Almiscar'))
+    );
+
+    // Si la encontramos, autocompletamos los demás campos mágicamente
+    if (pastTransaction && !initialData) {
+      setCategory(pastTransaction.category);
+      setSubcategory(pastTransaction.subcategory === 'General' ? '' : pastTransaction.subcategory);
+      // No autocompletamos el monto porque suele variar, pero ya le ahorramos 2 clics
+    }
   };
 
   const handleCategorySelect = (e) => {
@@ -105,9 +131,9 @@ const TransactionForm = ({ onSaveTransaction, initialData = null, onCancel = nul
 
     const transaction = {
       id: initialData ? initialData.id : crypto.randomUUID(),
-      fund: activeFund, // Inyección automática del fondo
+      fund: activeFund, 
       type,
-      description,
+      description: description.trim(), // Limpiamos espacios extra
       amount: parseFloat(amount),
       currency,
       category,
@@ -139,8 +165,6 @@ const TransactionForm = ({ onSaveTransaction, initialData = null, onCancel = nul
         </div>
       )}
 
-      {/* Se eliminó intencionalmente el div selector de Fondo Destino */}
-
       <div className={styles.typeSelector}>
         <button 
           className={`${styles.typeBtn} ${type === 'Ingreso' ? styles.activeIngreso : ''}`}
@@ -166,7 +190,23 @@ const TransactionForm = ({ onSaveTransaction, initialData = null, onCancel = nul
 
         <div className={styles.formGroup}>
           <label htmlFor="description" className={styles.label}>Descripción</label>
-          <input type="text" id="description" value={description} onChange={(e) => setDescription(e.target.value)} className={styles.input} placeholder="Ej. Venta de 10 novillos" required />
+          {/* Conectamos el input con el datalist de descripciones */}
+          <input 
+            type="text" 
+            id="description" 
+            list="descriptions"
+            value={description} 
+            onChange={handleDescriptionChange} 
+            className={styles.input} 
+            placeholder="Ej. Venta de 10 novillos" 
+            required 
+            autoComplete="off"
+          />
+          <datalist id="descriptions">
+            {availableDescriptions.map((desc, idx) => (
+              <option key={`desc-${idx}`} value={desc} />
+            ))}
+          </datalist>
         </div>
 
         <div className={styles.formGroup}>
@@ -208,6 +248,7 @@ const TransactionForm = ({ onSaveTransaction, initialData = null, onCancel = nul
             onChange={(e) => setSubcategory(e.target.value)}
             className={styles.input}
             placeholder="Ej. Vacunas, Fardos, etc. (O elige de la lista)"
+            autoComplete="off"
           />
           <datalist id="subcategories">
             {availableSubcategories.map(sub => (
